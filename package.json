@@ -2,9 +2,6 @@
   "name": "mcp-apps-task-server",
   "version": "1.0.0",
   "main": "build/main.js",
-  "bin": {
-    "mcp-apps-task-server": "build/main.js"
-  },
   "scripts": {
     "build": "tsc --noEmit && tsc -p tsconfig.server.json && cross-env INPUT=mcp-app.html vite build",
     "start": "node build/main.js",

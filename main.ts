@@ -6,8 +6,6 @@ import cors from "cors";
 import type { Request, Response } from "express";
 import { createServer } from "./server.js";
 
-// ---------- Streamable HTTP Server ----------
-
 export async function startStreamableHTTPServer(
   createServer: () => McpServer,
 ): Promise<void> {
@@ -43,13 +41,13 @@ export async function startStreamableHTTPServer(
   });
 
   const httpServer = app.listen(port, () => {
-    console.error(
+    console.log(
       `Task MCP App Server listening on http://localhost:${port}/mcp`,
     );
   });
 
   const shutdown = () => {
-    console.error("\nShutting down...");
+    console.log("\nShutting down...");
     httpServer.close(() => process.exit(0));
   };
 
@@ -57,21 +55,17 @@ export async function startStreamableHTTPServer(
   process.on("SIGTERM", shutdown);
 }
 
-// ---------- Stdio Server ----------
-
 export async function startStdioServer(
   createServer: () => McpServer,
 ): Promise<void> {
   await createServer().connect(new StdioServerTransport());
 }
 
-// ---------- main ----------
-
 async function main() {
-  if (process.argv.includes("--http")) {
-    await startStreamableHTTPServer(createServer);
-  } else {
+  if (process.argv.includes("--stdio")) {
     await startStdioServer(createServer);
+  } else {
+    await startStreamableHTTPServer(createServer);
   }
 }
 

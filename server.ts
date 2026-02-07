@@ -10,16 +10,13 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 // ビルド済み UI の格納先
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 // tsx で直接実行時は ./dist、tsc ビルド後（build/）はプロジェクトルートの dist
-const DIST_DIR = __filename.endsWith(".ts")
-  ? path.join(__dirname, "dist")
-  : path.join(__dirname, "..", "dist");
+const DIST_DIR = import.meta.filename.endsWith(".ts")
+  ? path.join(import.meta.dirname, "dist")
+  : path.join(import.meta.dirname, "..", "dist");
 
 // ---------- OutSystems REST API ----------
 
@@ -47,7 +44,12 @@ const taskSchema = z.object({
 
 async function fetchTasks(): Promise<Task[]> {
   const res = await fetch(`${TASK_API_BASE}/GetTasks`);
-  if (!res.ok) throw new Error(`GetTasks failed: ${res.statusText}`);
+  if (!res.ok) {
+    const errorDetail = await res.text().catch(() => "");
+    throw new Error(
+      `GetTasks failed: ${res.status} ${res.statusText}${errorDetail ? ` - ${errorDetail}` : ""}`,
+    );
+  }
   const data = (await res.json()) as Task[];
   // Status と Priority がない場合はデフォルト値を設定
   return data.map((task) => ({
@@ -63,7 +65,12 @@ async function createTask(task: Omit<Task, "Id">): Promise<Task> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ Task: task }),
   });
-  if (!res.ok) throw new Error(`CreateTask failed: ${res.statusText}`);
+  if (!res.ok) {
+    const errorDetail = await res.text().catch(() => "");
+    throw new Error(
+      `CreateTask failed: ${res.status} ${res.statusText}${errorDetail ? ` - ${errorDetail}` : ""}`,
+    );
+  }
   return (await res.json()) as Task;
 }
 
@@ -84,7 +91,8 @@ export function createServer(): McpServer {
     "list-tasks",
     {
       title: "List Tasks",
-      description: "タスクの一覧を表示します。",
+      description:
+        "タスクの一覧を取得し、UI に表示します。USE THIS TOOL when the user asks to see or list tasks.",
       inputSchema: z.object({}),
       outputSchema: z.object({
         tasks: z.array(taskSchema),
@@ -120,7 +128,8 @@ export function createServer(): McpServer {
     "add-task",
     {
       title: "Add Task",
-      description: "新しいタスクを追加します。",
+      description:
+        "新しいタスクを追加します。This tool is called from the UI app only (not directly by Claude).",
       inputSchema: z.object({
         Title: z.string().describe("タスクのタイトル"),
         Description: z.string().describe("タスクの説明"),

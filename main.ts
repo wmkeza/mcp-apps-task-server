@@ -43,13 +43,13 @@ export async function startStreamableHTTPServer(
   });
 
   const httpServer = app.listen(port, () => {
-    console.log(
+    console.error(
       `Task MCP App Server listening on http://localhost:${port}/mcp`,
     );
   });
 
   const shutdown = () => {
-    console.log("\nShutting down...");
+    console.error("\nShutting down...");
     httpServer.close(() => process.exit(0));
   };
 
@@ -68,10 +68,10 @@ export async function startStdioServer(
 // ---------- main ----------
 
 async function main() {
-  if (process.argv.includes("--stdio")) {
-    await startStdioServer(createServer);
-  } else {
+  if (process.argv.includes("--http")) {
     await startStreamableHTTPServer(createServer);
+  } else {
+    await startStdioServer(createServer);
   }
 }
 

@@ -16,36 +16,45 @@ import { z } from "zod";
 // ビルド済み UI の格納先
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+// tsx で直接実行時は ./dist、tsc ビルド後（build/）はプロジェクトルートの dist
 const DIST_DIR = __filename.endsWith(".ts")
   ? path.join(__dirname, "dist")
-  : __dirname;
+  : path.join(__dirname, "..", "dist");
 
 // ---------- OutSystems REST API ----------
 
-const TASK_API_BASE = "https://YOUR_DOMAIN/Mcp/rest/TaskApi";
+const TASK_API_BASE =
+  process.env.TASK_API_BASE ||
+  "https://xxx.outsystems.app/TaskManagementAPI/rest/Mcp";
 
 interface Task {
   Id: number;
   Title: string;
   Description: string;
-  Priority: number;
+  Priority?: number;
   DueDate: string;
-  Status: number;
+  Status?: number;
 }
 
 const taskSchema = z.object({
   Id: z.number(),
   Title: z.string(),
   Description: z.string(),
-  Priority: z.number(),
+  Priority: z.number().optional().default(0),
   DueDate: z.string(),
-  Status: z.number(),
+  Status: z.number().optional().default(0),
 });
 
 async function fetchTasks(): Promise<Task[]> {
   const res = await fetch(`${TASK_API_BASE}/GetTasks`);
   if (!res.ok) throw new Error(`GetTasks failed: ${res.statusText}`);
-  return (await res.json()) as Task[];
+  const data = (await res.json()) as Task[];
+  // Status と Priority がない場合はデフォルト値を設定
+  return data.map((task) => ({
+    ...task,
+    Priority: task.Priority ?? 0,
+    Status: task.Status ?? 0,
+  }));
 }
 
 async function createTask(task: Omit<Task, "Id">): Promise<Task> {

@@ -10,7 +10,8 @@
     "verbatimModuleSyntax": true,
     "noEmit": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node"]
   },
   "include": ["src", "server.ts", "main.ts"]
 }

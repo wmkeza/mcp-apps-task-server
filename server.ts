@@ -10,12 +10,15 @@ import type {
 } from "@modelcontextprotocol/sdk/types.js";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 // ビルド済み UI の格納先
-const DIST_DIR = import.meta.filename.endsWith(".ts")
-  ? path.join(import.meta.dirname, "dist")
-  : import.meta.dirname;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const DIST_DIR = __filename.endsWith(".ts")
+  ? path.join(__dirname, "dist")
+  : __dirname;
 
 // ---------- OutSystems REST API ----------
 

@@ -16,7 +16,7 @@ import { z } from "zod";
 // tsx で直接実行時は ./dist、tsc ビルド後（build/）はプロジェクトルートの dist
 const DIST_DIR = import.meta.filename.endsWith(".ts")
   ? path.join(import.meta.dirname, "dist")
-  : path.join(import.meta.dirname, "..", "dist");
+  : import.meta.dirname;
 
 // ---------- OutSystems REST API ----------
 
